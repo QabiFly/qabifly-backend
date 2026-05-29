@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QabiFly API Tester</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4ff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .header {
+      background: linear-gradient(135deg, #4B7BF5, #B044E8);
+      color: white;
+      padding: 20px 24px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .header h1 { font-size: 22px; font-weight: 800; }
+    .header p  { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .card h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 10px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: #6C3DC8;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #4B7BF5, #B044E8);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:hover   { opacity: 0.9; }
+    button:active  { opacity: 0.8; }
+    button.danger  {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+    button.success {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+    }
+
+    .result {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-family: monospace;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      display: none;
+    }
+    .result.ok    { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .result.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .result.info  { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      padding: 10px 14px;
+      background: #f9fafb;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #d1d5db;
+    }
+    .dot.green  { background: #22c55e; }
+    .dot.red    { background: #ef4444; }
+    .dot.yellow { background: #f59e0b; }
+
+    .token-display {
+      padding: 8px 12px;
+      background: #f3f4f6;
+      border-radius: 8px;
+      font-size: 10px;
+      font-family: monospace;
+      color: #4b5563;
+      margin-bottom: 10px;
+      word-break: break-all;
+      min-height: 36px;
+    }
+
+    label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      display: block;
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🚀 QabiFly API Tester</h1>
+  <p>Backend APIs ka real-time test karo</p>
+  <p id="api-url" style="margin-top:6px; font-size:11px; opacity:0.7;"></p>
+</div>
+
+<div class="grid">
+
+  <!-- 1. Server Health -->
+  <div class="card">
+    <h2>🟢 1. Server Health Check</h2>
+    <div class="status-bar">
+      <div class="dot" id="health-dot"></div>
+      <span id="health-text">Check nahi hua abhi</span>
+    </div>
+    <button onclick="checkHealth()">Health Check Karo</button>
+    <div class="result" id="health-result"></div>
+  </div>
+
+  <!-- 2. Register -->
+  <div class="card">
+    <h2>📝 2. Register</h2>
+    <label>Full Name</label>
+    <input id="reg-name"  type="text"     placeholder="Arman Khan" value="Test User" />
+    <label>Email</label>
+    <input id="reg-email" type="email"    placeholder="test@example.com" />
+    <label>Password</label>
+    <input id="reg-pass"  type="password" placeholder="password123" value="password123" />
+    <label>Role</label>
+    <select id="reg-role">
+      <option value="BUYER">🛒 Buyer</option>
+      <option value="SHOPKEEPER">🏪 Shopkeeper</option>
+      <option value="DELIVERY_BOY">🚴 Delivery Boy</option>
+    </select>
+    <button onclick="register()">Register Karo</button>
+    <div class="result" id="register-result"></div>
+  </div>
+
+  <!-- 3. Send OTP -->
+  <div class="card">
+    <h2>📧 3. Email OTP Bhejo</h2>
+    <label>Email</label>
+    <input id="otp-email" type="email" placeholder="test@example.com" />
+    <button onclick="sendOTP()">OTP Bhejo</button>
+    <div class="result" id="otp-result"></div>
+  </div>
+
+  <!-- 4. Verify OTP / Login -->
+  <div class="card">
+    <h2>🔐 4. OTP Verify + Login</h2>
+    <label>Email</label>
+    <input id="verify-email" type="email" placeholder="test@example.com" />
+    <label>OTP Code (6 digit)</label>
+    <input id="verify-otp" type="number" placeholder="123456" maxlength="6" />
+    <button onclick="verifyOTP()">Verify + Login Karo</button>
+    <div class="result" id="verify-result"></div>
+  </div>
+
+  <!-- 5. Email+Password Login -->
+  <div class="card">
+    <h2>🔑 5. Email+Password Login</h2>
+    <label>Email</label>
+    <input id="login-email" type="email" placeholder="admin@example.com" />
+    <label>Password</label>
+    <input id="login-pass"  type="password" placeholder="password" />
+    <button onclick="loginPassword()">Login Karo</button>
+    <div class="result" id="login-result"></div>
+  </div>
+
+  <!-- 6. Token -->
+  <div class="card">
+    <h2>🎫 6. Current Token</h2>
+    <label>Access Token (auto-save hota hai login ke baad)</label>
+    <div class="token-display" id="token-display">Koi token nahi — pehle login karo</div>
+    <button onclick="getMe()" class="success">Profile Dekho (GET /users/me/)</button>
+    <button onclick="clearToken()" class="danger" style="margin-top:8px;">Token Clear Karo (Logout)</button>
+    <div class="result" id="me-result"></div>
+  </div>
+
+  <!-- 7. Station Codes -->
+  <div class="card">
+    <h2>🚉 7. Station Codes</h2>
+    <button onclick="getStationCodes()">Station Codes Dekho</button>
+    <div class="result" id="station-result"></div>
+  </div>
+
+  <!-- 8. Nearby Shops -->
+  <div class="card">
+    <h2>🏪 8. Nearby Shops</h2>
+    <label>Latitude</label>
+    <input id="shop-lat" type="number" placeholder="25.7425" value="25.7425" step="0.0001" />
+    <label>Longitude</label>
+    <input id="shop-lon" type="number" placeholder="84.2000" value="84.2000" step="0.0001" />
+    <button onclick="getNearbyShops()">Nearby Shops Dekho</button>
+    <div class="result" id="shops-result"></div>
+  </div>
+
+  <!-- 9. Products -->
+  <div class="card">
+    <h2>📦 9. Products List</h2>
+    <label>Search (optional)</label>
+    <input id="prod-search" type="text" placeholder="rice, daal, etc." />
+    <button onclick="getProducts()">Products Dekho</button>
+    <div class="result" id="products-result"></div>
+  </div>
+
+  <!-- 10. Weather IoT -->
+  <div class="card">
+    <h2>🌦️ 10. Reoti Weather</h2>
+    <button onclick="getWeather()">Weather Data Dekho</button>
+    <div class="result" id="weather-result"></div>
+  </div>
+
+  <!-- 11. Cart -->
+  <div class="card">
+    <h2>🛒 11. Cart Dekho</h2>
+    <p style="font-size:11px;color:#6b7280;margin-bottom:10px;">Login hona chahiye</p>
+    <button onclick="getCart()">Cart Dekho</button>
+    <div class="result" id="cart-result"></div>
+  </div>
+
+  <!-- 12. My Orders -->
+  <div class="card">
+    <h2>📋 12. Mere Orders</h2>
+    <p style="font-size:11px;color:#6b7280;margin-bottom:10px;">Login hona chahiye</p>
+    <button onclick="getOrders()">Orders Dekho</button>
+    <div class="result" id="orders-result"></div>
+  </div>
+
+  <!-- 13. Wallet -->
+  <div class="card">
+    <h2>💰 13. Wallet Balance</h2>
+    <p style="font-size:11px;color:#6b7280;margin-bottom:10px;">Login hona chahiye</p>
+    <button onclick="getWallet()">Wallet Dekho</button>
+    <div class="result" id="wallet-result"></div>
+  </div>
+
+  <!-- 14. Udhaar -->
+  <div class="card">
+    <h2>📒 14. Digital Khata (Udhaar)</h2>
+    <p style="font-size:11px;color:#6b7280;margin-bottom:10px;">Login hona chahiye</p>
+    <button onclick="getUdhaar()">Udhaar Dekho</button>
+    <div class="result" id="udhaar-result"></div>
+  </div>
+
+  <!-- 15. Notifications -->
+  <div class="card">
+    <h2>🔔 15. Notifications</h2>
+    <p style="font-size:11px;color:#6b7280;margin-bottom:10px;">Login hona chahiye</p>
+    <button onclick="getNotifications()">Notifications Dekho</button>
+    <div class="result" id="notif-result"></div>
+  </div>
+
+  <!-- 16. Videos -->
+  <div class="card">
+    <h2>🎬 16. Kisan Videos</h2>
+    <button onclick="getVideos()">Videos Dekho</button>
+    <div class="result" id="videos-result"></div>
+  </div>
+
+</div>
+
+<script>
+  // ── Config ────────────────────────────────────────────────────────────────
+  const BASE = "https://qabifly.vps.qalbconverfy.in/api/v1";
+
+  document.getElementById("api-url").textContent = "API: " + BASE;
+
+  // Token management
+  let accessToken = localStorage.getItem("qa_access") || "";
+  let refreshToken = localStorage.getItem("qa_refresh") || "";
+
+  function updateTokenDisplay() {
+    const el = document.getElementById("token-display");
+    if (accessToken) {
+      el.textContent = "✅ " + accessToken.substring(0, 60) + "...";
+      el.style.color = "#166534";
+    } else {
+      el.textContent = "❌ Koi token nahi — pehle login karo";
+      el.style.color = "#991b1b";
+    }
+  }
+  updateTokenDisplay();
+
+  function saveTokens(access, refresh) {
+    accessToken = access;
+    refreshToken = refresh;
+    localStorage.setItem("qa_access", access);
+    localStorage.setItem("qa_refresh", refresh);
+    updateTokenDisplay();
+  }
+
+  function clearToken() {
+    accessToken = "";
+    refreshToken = "";
+    localStorage.removeItem("qa_access");
+    localStorage.removeItem("qa_refresh");
+    updateTokenDisplay();
+    showResult("me-result", { message: "Token clear ho gaya. Ab guest mode mein ho." }, "info");
+  }
+
+  // ── Helper ────────────────────────────────────────────────────────────────
+  function showResult(id, data, type = "ok") {
+    const el = document.getElementById(id);
+    el.style.display = "block";
+    el.className = "result " + type;
+    el.textContent = JSON.stringify(data, null, 2);
+  }
+
+  async function apiCall(method, endpoint, body = null, auth = false) {
+    const headers = { "Content-Type": "application/json" };
+    if (auth && accessToken) headers["Authorization"] = "Bearer " + accessToken;
+
+    const opts = { method, headers };
+    if (body) opts.body = JSON.stringify(body);
+
+    const res  = await fetch(BASE + endpoint, opts);
+    const data = await res.json();
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  // ── 1. Health ─────────────────────────────────────────────────────────────
+  async function checkHealth() {
+    try {
+      const res = await fetch(BASE.replace("/api/v1", "") + "/health/");
+      const dot = document.getElementById("health-dot");
+      const txt = document.getElementById("health-text");
+
+      if (res.ok) {
+        const data = await res.json();
+        dot.className  = "dot green";
+        txt.textContent = "✅ Server chal raha hai — " + JSON.stringify(data);
+        showResult("health-result", data, "ok");
+      } else {
+        dot.className  = "dot red";
+        txt.textContent = "❌ Server error: " + res.status;
+        showResult("health-result", { error: "Status " + res.status }, "error");
+      }
+    } catch (e) {
+      document.getElementById("health-dot").className = "dot red";
+      document.getElementById("health-text").textContent = "❌ Server nahi mila";
+      showResult("health-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 2. Register ───────────────────────────────────────────────────────────
+  async function register() {
+    const name  = document.getElementById("reg-name").value;
+    const email = document.getElementById("reg-email").value;
+    const pass  = document.getElementById("reg-pass").value;
+    const role  = document.getElementById("reg-role").value;
+
+    if (!email || !pass || !name) {
+      showResult("register-result", { error: "Sab fields zaroori hain" }, "error");
+      return;
+    }
+
+    try {
+      const r = await apiCall("POST", "/auth/register/", {
+        email, password: pass, full_name: name, role
+      });
+
+      if (r.ok) {
+        // Auto-fill OTP email
+        document.getElementById("otp-email").value    = email;
+        document.getElementById("verify-email").value = email;
+        showResult("register-result", r.data, "ok");
+      } else {
+        showResult("register-result", r.data, "error");
+      }
+    } catch (e) {
+      showResult("register-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 3. Send OTP ───────────────────────────────────────────────────────────
+  async function sendOTP() {
+    const email = document.getElementById("otp-email").value;
+    if (!email) {
+      showResult("otp-result", { error: "Email daalo" }, "error");
+      return;
+    }
+    try {
+      const r = await apiCall("POST", "/auth/otp/email/send/", { email });
+      showResult("otp-result", r.data, r.ok ? "ok" : "error");
+      if (r.ok) document.getElementById("verify-email").value = email;
+    } catch (e) {
+      showResult("otp-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 4. Verify OTP ─────────────────────────────────────────────────────────
+  async function verifyOTP() {
+    const email    = document.getElementById("verify-email").value;
+    const otp_code = document.getElementById("verify-otp").value;
+
+    if (!email || !otp_code) {
+      showResult("verify-result", { error: "Email aur OTP daalo" }, "error");
+      return;
+    }
+
+    try {
+      const r = await apiCall("POST", "/auth/login/otp/verify/", {
+        email, otp_code
+      });
+
+      if (r.ok && r.data.data?.access) {
+        saveTokens(r.data.data.access, r.data.data.refresh);
+        showResult("verify-result", r.data, "ok");
+      } else {
+        showResult("verify-result", r.data, "error");
+      }
+    } catch (e) {
+      showResult("verify-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 5. Password Login ─────────────────────────────────────────────────────
+  async function loginPassword() {
+    const email    = document.getElementById("login-email").value;
+    const password = document.getElementById("login-pass").value;
+
+    if (!email || !password) {
+      showResult("login-result", { error: "Email aur password daalo" }, "error");
+      return;
+    }
+
+    try {
+      const r = await apiCall("POST", "/auth/login/", { email, password });
+
+      if (r.ok && r.data.data?.access) {
+        saveTokens(r.data.data.access, r.data.data.refresh);
+        showResult("login-result", {
+          message: "✅ Login successful!",
+          user:    r.data.data.user,
+        }, "ok");
+      } else {
+        showResult("login-result", r.data, "error");
+      }
+    } catch (e) {
+      showResult("login-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 6. Get Me ─────────────────────────────────────────────────────────────
+  async function getMe() {
+    if (!accessToken) {
+      showResult("me-result", { error: "Pehle login karo" }, "error");
+      return;
+    }
+    try {
+      const r = await apiCall("GET", "/users/me/", null, true);
+      showResult("me-result", r.data, r.ok ? "ok" : "error");
+    } catch (e) {
+      showResult("me-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 7. Station Codes ──────────────────────────────────────────────────────
+  async function getStationCodes() {
+    try {
+      const r = await apiCall("GET", "/auth/station-codes/");
+      showResult("station-result", r.data, r.ok ? "ok" : "error");
+    } catch (e) {
+      showResult("station-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 8. Nearby Shops ───────────────────────────────────────────────────────
+  async function getNearbyShops() {
+    const lat = document.getElementById("shop-lat").value;
+    const lon = document.getElementById("shop-lon").value;
+    try {
+      const r = await apiCall("GET", `/shops/nearby/?lat=${lat}&lon=${lon}`);
+      showResult("shops-result", r.data, r.ok ? "ok" : "error");
+    } catch (e) {
+      showResult("shops-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 9. Products ───────────────────────────────────────────────────────────
+  async function getProducts() {
+    const search = document.getElementById("prod-search").value;
+    const query  = search ? `?search=${search}` : "";
+    try {
+      const r = await apiCall("GET", `/products/${query}`);
+      showResult("products-result", r.data, r.ok ? "ok" : "error");
+    } catch (e) {
+      showResult("products-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 10. Weather ───────────────────────────────────────────────────────────
+  async function getWeather() {
+    try {
+      const r = await apiCall("GET", "/iot/weather/");
+      showResult("weather-result", r.data, r.ok ? "ok" : "error");
+    } catch (e) {
+      showResult("weather-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 11. Cart ──────────────────────────────────────────────────────────────
+  async function getCart() {
+    if (!accessToken) {
+      showResult("cart-result", { error: "Pehle login karo" }, "error");
+      return;
+    }
+    try {
+      const r = await apiCall("GET", "/cart/", null, true);
+      showResult("cart-result", r.data, r.ok ? "ok" : "error");
+    } catch (e) {
+      showResult("cart-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 12. Orders ────────────────────────────────────────────────────────────
+  async function getOrders() {
+    if (!accessToken) {
+      showResult("orders-result", { error: "Pehle login karo" }, "error");
+      return;
+    }
+    try {
+      const r = await apiCall("GET", "/orders/mine/", null, true);
+      showResult("orders-result", r.data, r.ok ? "ok" : "error");
+    } catch (e) {
+      showResult("orders-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 13. Wallet ────────────────────────────────────────────────────────────
+  async function getWallet() {
+    if (!accessToken) {
+      showResult("wallet-result", { error: "Pehle login karo" }, "error");
+      return;
+    }
+    try {
+      const r = await apiCall("GET", "/wallet/", null, true);
+      showResult("wallet-result", r.data, r.ok ? "ok" : "error");
+    } catch (e) {
+      showResult("wallet-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 14. Udhaar ────────────────────────────────────────────────────────────
+  async function getUdhaar() {
+    if (!accessToken) {
+      showResult("udhaar-result", { error: "Pehle login karo" }, "error");
+      return;
+    }
+    try {
+      const r = await apiCall("GET", "/udhaar/mine/", null, true);
+      showResult("udhaar-result", r.data, r.ok ? "ok" : "error");
+    } catch (e) {
+      showResult("udhaar-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 15. Notifications ─────────────────────────────────────────────────────
+  async function getNotifications() {
+    if (!accessToken) {
+      showResult("notif-result", { error: "Pehle login karo" }, "error");
+      return;
+    }
+    try {
+      const r = await apiCall("GET", "/notifications/", null, true);
+      showResult("notif-result", r.data, r.ok ? "ok" : "error");
+    } catch (e) {
+      showResult("notif-result", { error: e.message }, "error");
+    }
+  }
+
+  // ── 16. Videos ────────────────────────────────────────────────────────────
+  async function getVideos() {
+    try {
+      const r = await apiCall("GET", "/videos/");
+      showResult("videos-result", r.data, r.ok ? "ok" : "error");
+    } catch (e) {
+      showResult("videos-result", { error: e.message }, "error");
+    }
+  }
+
+  // Auto health check on load
+  window.onload = () => checkHealth();
+</script>
+
+</body>
+</html>
