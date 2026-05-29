@@ -1,0 +1,56 @@
+# Django Core
+Django
+djangorestframework
+django-cors-headers
+django-environ
+django-filter
+django-ratelimit
+# Authentication — Pure Python, no third-party auth provider
+djangorestframework-simplejwt
+
+# PostgreSQL
+psycopg2-binary
+
+# MongoDB — via Djongo or PyMongo directly
+python-dateutil
+pymongo
+djongo
+mongoengine
+
+# Redis
+redis
+django-redis
+
+# Celery
+celery
+django-celery-beat
+django-celery-results
+django-jazzmin
+# Real-time
+channels
+channels-redis
+daphne
+
+# File Storage
+boto3
+django-storages
+
+# API Docs
+drf-spectacular
+
+# HTTP client (Fast2SMS only — no email provider SDK needed)
+httpx
+
+# Image Processing
+Pillow
+
+# Email — SMTP only, no provider SDK
+google-auth
+google-auth-httplib2
+# Django's built-in EmailMessage + smtplib handles everything
+
+# Utilities
+python-decouple
+phonenumbers
+cryptography
+requests

@@ -1,0 +1,38 @@
+services:
+  web:
+    image: ghcr.io/qabifly/qabifly-backend:latest
+    container_name: qabifly_web
+    restart: always
+    command: daphne -b 0.0.0.0 -p 8000 config.asgi:application
+    volumes:
+      - media_files:/app/media
+      - static_files:/app/staticfiles
+      - ./logs:/app/logs
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+
+  celery_worker:
+    image: ghcr.io/qabifly/qabifly-backend:latest
+    container_name: qabifly_celery
+    restart: always
+    command: celery -A celery_app worker --loglevel=info --concurrency=1
+    volumes:
+      - ./logs:/app/logs
+    env_file:
+      - .env
+
+  celery_beat:
+    image: ghcr.io/qabifly/qabifly-backend:latest
+    container_name: qabifly_beat
+    restart: always
+    command: celery -A celery_app beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - ./logs:/app/logs
+    env_file:
+      - .env
+
+volumes:
+  media_files:
+  static_files:

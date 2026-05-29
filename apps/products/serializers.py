@@ -1,0 +1,140 @@
+from rest_framework import serializers
+from apps.users.serializers import PublicUserSerializer
+from .models import Product, ProductCategory, ProductImage, ProductVariant, ProductReview
+
+
+class ProductCategorySerializer(serializers.ModelSerializer):
+    children = serializers.SerializerMethodField()
+
+    class Meta:
+        model  = ProductCategory
+        fields = ("id", "name", "slug", "icon", "sort_order", "children")
+
+    def get_children(self, obj):
+        return ProductCategorySerializer(
+            obj.children.filter(is_active=True), many=True
+        ).data
+
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = ProductImage
+        fields = ("id", "image", "is_primary", "sort_order")
+        read_only_fields = ("id",)
+
+
+class ProductVariantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = ProductVariant
+        fields = ("id", "name", "price", "stock", "is_active")
+        read_only_fields = ("id",)
+
+
+class ProductReviewSerializer(serializers.ModelSerializer):
+    user = PublicUserSerializer(read_only=True)
+
+    class Meta:
+        model  = ProductReview
+        fields = ("id", "user", "rating", "comment", "created_at")
+        read_only_fields = ("id", "user", "created_at")
+
+
+class ProductCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = Product
+        fields = (
+            "name", "category", "description",
+            "price", "discount_percent",
+            "stock", "low_stock_alert",
+            "is_featured", "unit",
+        )
+
+    def validate(self, attrs):
+        request = self.context["request"]
+        try:
+            shop = request.user.shop
+        except Exception:
+            raise serializers.ValidationError("You do not have a registered shop.")
+        if shop.status != "ACTIVE":
+            raise serializers.ValidationError(
+                "Your shop must be approved before adding products."
+            )
+        return attrs
+
+    def create(self, validated_data):
+        import re
+        request = self.context["request"]
+        shop    = request.user.shop
+        name    = validated_data["name"]
+        base_slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+        slug    = base_slug
+        counter = 1
+        while Product.objects.filter(shop=shop, slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        return Product.objects.create(shop=shop, slug=slug, **validated_data)
+
+
+class ProductListSerializer(serializers.ModelSerializer):
+    """Compact — for listing pages."""
+    primary_image    = serializers.SerializerMethodField()
+    discounted_price = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+    category_name    = serializers.CharField(source="category.name", read_only=True)
+    shop_name        = serializers.CharField(source="shop.name", read_only=True)
+
+    class Meta:
+        model  = Product
+        fields = (
+            "id", "name", "slug", "category_name", "shop_name",
+            "price", "discount_percent", "discounted_price",
+            "stock", "is_featured", "unit",
+            "average_rating", "total_reviews",
+            "primary_image", "status",
+        )
+
+    def get_primary_image(self, obj):
+        img = obj.images.filter(is_primary=True).first()
+        if img:
+            request = self.context.get("request")
+            return request.build_absolute_uri(img.image.url) if request else img.image.url
+        return None
+
+
+class ProductDetailSerializer(serializers.ModelSerializer):
+    """Full detail — for product page."""
+    images           = ProductImageSerializer(many=True, read_only=True)
+    variants         = ProductVariantSerializer(many=True, read_only=True)
+    reviews          = ProductReviewSerializer(many=True, read_only=True)
+    category         = ProductCategorySerializer(read_only=True)
+    discounted_price = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+    is_in_stock      = serializers.BooleanField(read_only=True)
+    is_low_stock     = serializers.BooleanField(read_only=True)
+    shop_name        = serializers.CharField(source="shop.name", read_only=True)
+    shop_slug        = serializers.CharField(source="shop.slug", read_only=True)
+
+    class Meta:
+        model  = Product
+        fields = (
+            "id", "name", "slug", "description",
+            "category", "shop_name", "shop_slug",
+            "price", "discount_percent", "discounted_price",
+            "stock", "is_in_stock", "is_low_stock",
+            "is_featured", "unit", "status",
+            "average_rating", "total_reviews", "total_sold",
+            "images", "variants", "reviews",
+            "created_at",
+        )
+
+
+class ProductUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = Product
+        fields = (
+            "description", "price", "discount_percent",
+            "stock", "low_stock_alert",
+            "is_featured", "unit", "status",
+        )
