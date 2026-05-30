@@ -13,8 +13,23 @@ class OrderStatusLogInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display  = ("order_number", "buyer", "shop", "status", "payment_method", "total_amount", "created_at")
+    list_display = (
+        "order_number",
+        "buyer_email",
+        "shop",
+        "status",
+        "payment_method",
+        "total_amount",
+        "created_at",
+    )
     list_filter   = ("status", "payment_method", "payment_status")
     search_fields = ("order_number", "buyer__email", "shop__name")
-    readonly_fields = ("id", "order_number", "created_at", "updated_at")
+    readonly_fields = (
+        "id", "order_number", "created_at", "updated_at"
+    )
+
+    def buyer_email(self, obj):
+        return obj.buyer.email
+    buyer_email.short_description = "Buyer Email"
+
     inlines = [OrderItemInline, OrderStatusLogInline]
