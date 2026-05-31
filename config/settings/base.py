@@ -243,6 +243,8 @@ WHATSAPP_ACCESS_TOKEN        = env("WHATSAPP_ACCESS_TOKEN", default="")
 WHATSAPP_VERIFY_TOKEN        = env("WHATSAPP_VERIFY_TOKEN", default="qabifly-webhook-secret-2024")
 WHATSAPP_API_URL             = env("WHATSAPP_API_URL", default="https://graph.facebook.com/v19.0")
 GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")
+AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME", default="ap-south-1")
+USE_S3 = env.bool("USE_S3", default=False)
 
 # ─── External Services ────────────────────────────────────────────────────────
 
