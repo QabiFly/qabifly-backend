@@ -243,8 +243,15 @@ WHATSAPP_ACCESS_TOKEN        = env("WHATSAPP_ACCESS_TOKEN", default="")
 WHATSAPP_VERIFY_TOKEN        = env("WHATSAPP_VERIFY_TOKEN", default="qabifly-webhook-secret-2024")
 WHATSAPP_API_URL             = env("WHATSAPP_API_URL", default="https://graph.facebook.com/v19.0")
 GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")
-AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME", default="ap-south-1")
-USE_S3 = env.bool("USE_S3", default=False)
+# AWS S3
+AWS_ACCESS_KEY_ID       = env("AWS_ACCESS_KEY_ID",       default="")
+AWS_SECRET_ACCESS_KEY   = env("AWS_SECRET_ACCESS_KEY",   default="")
+AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME", default="")
+AWS_S3_REGION_NAME      = env("AWS_S3_REGION_NAME",      default="ap-south-1")
+AWS_DEFAULT_ACL         = None
+AWS_S3_FILE_OVERWRITE   = False
+AWS_QUERYSTRING_AUTH    = False
+USE_S3                  = env.bool("USE_S3", default=False)
 
 # ─── External Services ────────────────────────────────────────────────────────
 
