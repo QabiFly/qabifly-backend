@@ -5,7 +5,7 @@ env = environ.Env()
 
 DEBUG = False
 
-CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[https://qabifly.edgeone.app,qabifly.edgeone.app])
+CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[https://qabifly.edgeone.app,qabifly.edgeone.app,http://127.0.0.1:7700,http://localhost:7700])
 
 SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
