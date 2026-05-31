@@ -9,7 +9,7 @@ env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = env("SECRET_KEY")
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost,qabifly.vps.qalbconverfy.in,https://qabifly.edgeone.app,qabifly.edgeone.app"])
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost,qabifly.vps.qalbconverfy.in,https://qabifly.edgeone.app,qabifly.edgeone.app,http://127.0.0.1:7700,http://localhost:7700"])
 
 DJANGO_APPS = [
     "jazzmin",
