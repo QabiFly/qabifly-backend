@@ -2,13 +2,27 @@ from .base import *
 
 DEBUG = True
 
-CORS_ALLOW_ALL_ORIGINS = True
+ALLOWED_HOSTS = ["*"]
 
-# Override email to console in development — no SMTP server needed locally
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+CORS_ALLOW_ALL_ORIGINS  = True
+CORS_ALLOW_CREDENTIALS  = True
 
-# Local file storage in development
+# ─── Storage — Local in dev ───────────────────────────────────────────────────
+# Cloudinary use karna ho toh neeche wali 2 lines comment karo
+
 DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+MEDIA_URL  = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
-# Relaxed password validation in dev
+# ─── Email — Console in dev ───────────────────────────────────────────────────
+# Real email test karna ho toh comment karo
+
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# ─── Relaxed passwords in dev ─────────────────────────────────────────────────
+
 AUTH_PASSWORD_VALIDATORS = []
+
+# ─── Dev-only logging ─────────────────────────────────────────────────────────
+
+LOGGING["loggers"]["apps"]["level"] = "DEBUG"
