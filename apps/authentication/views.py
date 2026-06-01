@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
-
+from .firebase_auth import verify_firebase_phone_token
 from core.responses import success_response, error_response
 from core.email import send_otp_email
 from apps.users.models import User
@@ -66,6 +66,74 @@ class RegisterView(APIView):
             status_code=status.HTTP_201_CREATED,
         )
 
+class FirebasePhoneLoginView(APIView):
+    """
+    POST /api/v1/auth/firebase/phone/
+    
+    Flutter Firebase Phone Auth se ID token aata hai.
+    Backend verify karta hai → JWT return karta hai.
+    
+    Body: {"id_token": "firebase-id-token"}
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        id_token = request.data.get("id_token")
+
+        if not id_token:
+            return error_response(
+                message="Firebase ID token required.",
+                status_code=400,
+            )
+
+        # Firebase se verify karo
+        firebase_info = verify_firebase_phone_token(id_token)
+
+        if not firebase_info:
+            return error_response(
+                message="Invalid Firebase token.",
+                status_code=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        phone        = firebase_info["phone"]
+        firebase_uid = firebase_info["firebase_uid"]
+
+        # User dhundo ya banao
+        user = User.objects.filter(phone=phone).first()
+
+        if user:
+            # Existing user — update firebase uid
+            if not hasattr(user, 'firebase_uid') or not user.firebase_uid:
+                user.is_phone_verified = True
+                user.save(update_fields=["is_phone_verified"])
+            is_new = False
+        else:
+            # Naya user — auto create
+            import random
+            import string
+            suffix = "".join(random.choices(string.digits, k=6))
+
+            user = User.objects.create_user(
+                email             = f"phone_{phone.replace('+', '')}@qabifly.in",
+                full_name         = f"User {suffix}",
+                phone             = phone,
+                role              = User.Role.BUYER,
+                is_verified       = True,
+                is_phone_verified = True,
+            )
+            is_new = True
+
+        tokens = get_tokens_for_user(user)
+
+        return success_response(
+            data={
+                **tokens,
+                "user":                UserProfileSerializer(user).data,
+                "is_new":             is_new,
+                "onboarding_complete": user.onboarding_complete,
+            },
+            message="Phone login successful.",
+        )
 
 # ── Email OTP ─────────────────────────────────────────────────────────────────
 
