@@ -31,10 +31,6 @@ channels
 channels-redis
 daphne
 
-# File Storage
-boto3
-django-storages
-
 # API Docs
 drf-spectacular
 
@@ -54,3 +50,7 @@ python-decouple
 phonenumbers
 cryptography
 requests
+
+# Yeh ADD karo:
+cloudinary
+django-cloudinary-storage
