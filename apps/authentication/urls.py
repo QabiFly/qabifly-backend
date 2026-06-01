@@ -15,6 +15,7 @@ from .views import (
     TokenRefreshView,
     # New
     GoogleLoginView,
+    FirebasePhoneLoginView,
     StationCodesView,
     OnboardingView,
     UpdateStationCodeView,
@@ -39,7 +40,7 @@ urlpatterns = [
 
     # Google Login
     path("google/",                GoogleLoginView.as_view(),        name="auth-google"),
-
+    path("firebase/phone/", FirebasePhoneLoginView.as_view(), name="auth-firebase-phone"),
     # Onboarding
     path("onboarding/",            OnboardingView.as_view(),         name="auth-onboarding"),
     path("station-codes/",         StationCodesView.as_view(),       name="station-codes"),
