@@ -234,6 +234,7 @@ CLOUDINARY_STORAGE = {
     "SECURE":     True,
 }
 
+
 # Default — override in dev/prod
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 MEDIA_URL = "/media/"
@@ -247,6 +248,8 @@ MAX_UDHAAR_LIMIT            = env.int("MAX_UDHAAR_LIMIT",             default=20
 DELIVERY_RADIUS_KM          = 2
 
 # ─── External Services ────────────────────────────────────────────────────────
+# Firebase
+FIREBASE_CREDENTIALS_PATH = env("FIREBASE_CREDENTIALS_PATH",default="/app/firebase-credentials.json")
 
 FAST2SMS_API_KEY  = env("FAST2SMS_API_KEY",  default="")
 RAZORPAY_KEY_ID   = env("RAZORPAY_KEY_ID",   default="")
