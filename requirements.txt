@@ -54,3 +54,4 @@ requests
 # Yeh ADD karo:
 cloudinary
 django-cloudinary-storage
+firebase-admin
