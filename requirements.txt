@@ -7,6 +7,8 @@ django-filter
 django-ratelimit
 # Authentication — Pure Python, no third-party auth provider
 djangorestframework-simplejwt
+django-ratelimit
+bleach
 
 # PostgreSQL
 psycopg2-binary
