@@ -32,31 +32,36 @@ class ProductCategoryListView(generics.ListAPIView):
 # ── Public Product Listing ────────────────────────────────────────────────────
 
 class ProductListView(generics.ListAPIView):
-    """
-    GET /api/v1/products/?shop=<slug>&category=<slug>&search=<q>&featured=true
-    """
-    permission_classes = [AllowAny]
-    serializer_class   = ProductListSerializer
-
     def get_queryset(self):
-        qs = Product.objects.filter(
+        qs     = Product.objects.filter(
             status=Product.Status.ACTIVE,
             shop__status="ACTIVE",
-        ).select_related("category", "shop").prefetch_related("images")
+        ).select_related("category","shop").prefetch_related("images")
+
+        search = self.request.query_params.get("search")
+        if search:
+            vector = SearchVector("name","description")
+            query  = SearchQuery(search)
+            qs = qs.annotate(
+                rank=SearchRank(vector, query)
+            ).filter(rank__gte=0.001).order_by("-rank")
 
         shop_slug     = self.request.query_params.get("shop")
         category_slug = self.request.query_params.get("category")
-        search        = self.request.query_params.get("search")
         featured      = self.request.query_params.get("featured")
+        min_price     = self.request.query_params.get("min_price")
+        max_price     = self.request.query_params.get("max_price")
 
         if shop_slug:
             qs = qs.filter(shop__slug=shop_slug)
         if category_slug:
             qs = qs.filter(category__slug=category_slug)
-        if search:
-            qs = qs.filter(name__icontains=search)
-        if featured and featured.lower() == "true":
+        if featured == "true":
             qs = qs.filter(is_featured=True)
+        if min_price:
+            qs = qs.filter(price__gte=min_price)
+        if max_price:
+            qs = qs.filter(price__lte=max_price)
 
         return qs
 
