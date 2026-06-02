@@ -1,23 +1,14 @@
 from .base import *
+import os
+import environ
 
 DEBUG = False
 
-ALLOWED_HOSTS = [
-    "qalbconverfy.in",
-    "qabifly.vps.qalbconverfy.in",
-    "www.qalbconverfy.in",
-    "qabifly.edgeone.app",
-    "localhost",
-    "localhost:7700",
-]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS","qabifly.vps.qalbconverfy.in,localhost,127.0.0.1")
 
-CORS_ALLOWED_ORIGINS = [
-    "https://qalbconverfy.in",
-    "https://qabifly.vps.qalbconverfy.in",
-    "https://qabifly.edgeone.app",
-    "http://localhost",
-    "http://localhost:7700",
-]
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS","")
+
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS","")
 
 CORS_ALLOW_CREDENTIALS = True
 
