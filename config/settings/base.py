@@ -29,6 +29,7 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "django_filters",
+    "django_ratelimit",
     "channels",
     "django_celery_beat",
     "django_celery_results",
