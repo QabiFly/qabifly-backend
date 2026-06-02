@@ -7,12 +7,16 @@ ALLOWED_HOSTS = [
     "qabifly.vps.qalbconverfy.in",
     "www.qalbconverfy.in",
     "qabifly.edgeone.app",
+    "localhost",
+    "localhost:7700",
 ]
 
 CORS_ALLOWED_ORIGINS = [
     "https://qalbconverfy.in",
     "https://qabifly.vps.qalbconverfy.in",
     "https://qabifly.edgeone.app",
+    "http://localhost",
+    "http://localhost:7700",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
