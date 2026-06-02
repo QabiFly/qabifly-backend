@@ -11,6 +11,8 @@ from core.responses import success_response, error_response
 from core.email import send_otp_email
 from apps.users.models import User
 from apps.users.serializers import UserProfileSerializer
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 
 from .models import OTPRecord, RefreshTokenRecord
 from .serializers import (
@@ -66,6 +68,10 @@ class RegisterView(APIView):
             status_code=status.HTTP_201_CREATED,
         )
 
+@method_decorator(
+    ratelimit(key="ip", rate="10/m", method="POST", block=True),
+    name="post"
+)
 class FirebasePhoneLoginView(APIView):
     """
     POST /api/v1/auth/firebase/phone/
@@ -136,6 +142,10 @@ class FirebasePhoneLoginView(APIView):
         )
 
 # ── Email OTP ─────────────────────────────────────────────────────────────────
+@method_decorator(
+    ratelimit(key="ip", rate="5/m", method="POST", block=True),
+    name="post"
+)
 
 class SendEmailOTPView(APIView):
     permission_classes = [AllowAny]
@@ -362,6 +372,10 @@ class EmailOTPLoginVerifyView(APIView):
 
 
 # ── Google Login ──────────────────────────────────────────────────────────────
+@method_decorator(
+    ratelimit(key="ip", rate="5/m", method="POST", block=True),
+    name="post"
+)
 
 class GoogleLoginView(APIView):
     """
