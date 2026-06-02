@@ -309,3 +309,32 @@ LOGGING = {
         },
     },
 }
+
+# config/settings/base.py mein add karo:
+
+JAZZMIN_SETTINGS = {
+    "site_title":    "QabiFly Admin",
+    "site_header":   "QabiFly",
+    "site_brand":    "QabiFly",
+    "welcome_sign":  "QabiFly Admin Panel — Reoti, Ballia",
+    "copyright":     "ZEAIPC",
+    "search_model":  ["users.User", "orders.Order", "shops.Shop"],
+    "topmenu_links": [
+        {"name": "Home",    "url": "admin:index"},
+        {"name": "API Docs","url": "/api/docs/", "new_window": True},
+    ],
+    "icons": {
+        "users.User":         "fas fa-users",
+        "shops.Shop":         "fas fa-store",
+        "orders.Order":       "fas fa-box",
+        "wallet.Wallet":      "fas fa-wallet",
+        "udhaar.UdhaarRecord":"fas fa-book",
+    },
+    "show_sidebar":       True,
+    "navigation_expanded": True,
+    "order_with_respect_to": [
+        "users", "shops", "products",
+        "orders", "payments", "wallet",
+        "udhaar", "emi", "delivery",
+    ],
+}
