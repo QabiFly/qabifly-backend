@@ -39,15 +39,21 @@ SESSION_COOKIE_SECURE          = True
 CSRF_COOKIE_SECURE             = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# ─── Storage — Cloudinary ─────────────────────────────────────────────────────
+# ───────────────────────────────
+# ─── Storage ─────────────────────────────
 
-DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 MEDIA_URL = "/media/"
 
-# ─── Static ───────────────────────────────────────────────────────────────────
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+    },
+}
 
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
-STATIC_URL  = "/static/"
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # production.py mein add karo:
