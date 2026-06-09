@@ -59,6 +59,8 @@ class IngestSensorDataView(APIView):
         return success_response(message="Reading saved.")
 
 
+from drf_spectacular.utils import extend_schema   # ← Agar already import nahi hai toh add karo
+
 class CurrentWeatherView(APIView):
     """
     GET /api/v1/iot/weather/?node_id=REOTI-NODE-01
@@ -66,9 +68,9 @@ class CurrentWeatherView(APIView):
     """
     permission_classes = [AllowAny]
 
+    @extend_schema(responses={200: dict})     # ← YE LINE ADD KARO
     def get(self, request):
         node_id = request.query_params.get("node_id")
-
         if node_id:
             nodes = IoTNode.objects.filter(node_id=node_id)
         else:
@@ -79,17 +81,15 @@ class CurrentWeatherView(APIView):
 
         results = []
         for node in nodes:
-            latest      = get_latest_reading(node.node_id)
-            history     = get_readings_last_n_hours(node.node_id, hours=24)
-            advice      = get_crop_advice(latest) if latest else []
-
+            latest = get_latest_reading(node.node_id)
+            history = get_readings_last_n_hours(node.node_id, hours=24)
+            advice = get_crop_advice(latest) if latest else []
             results.append({
-                "node":        IoTNodeSerializer(node).data,
-                "latest":      latest,
-                "advice":      advice,
-                "history_24h": history[:12],  # last 12 readings
+                "node": IoTNodeSerializer(node).data,
+                "latest": latest,
+                "advice": advice,
+                "history_24h": history[:12],
             })
-
         return success_response(data=results)
 
 
