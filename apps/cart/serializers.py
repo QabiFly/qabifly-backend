@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from apps.products.serializers import ProductListSerializer
 from .models import Cart, CartItem
-
+from decimal import Decimal
 
 class CartItemSerializer(serializers.ModelSerializer):
     product_name  = serializers.CharField(source="product.name", read_only=True)
@@ -49,11 +49,13 @@ class CartSerializer(serializers.ModelSerializer):
         )
 
     def get_delivery_charge(self, obj):
-        # Free delivery for now — configurable later
-        return 0.00
+        # 0.00 ko Decimal banayein taaki crash na ho
+        return Decimal("0.00")
 
     def get_total_amount(self, obj):
-        return round(obj.subtotal + self.get_delivery_charge(obj), 2)
+        # Agar subtotal galti se None aaye toh safe fallback
+        subtotal = obj.subtotal or Decimal("0.00")
+        return round(subtotal + self.get_delivery_charge(obj), 2)
 
 
 class AddToCartSerializer(serializers.Serializer):
