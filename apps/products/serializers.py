@@ -78,11 +78,9 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 class ProductListSerializer(serializers.ModelSerializer):
     """Compact — for listing pages."""
     primary_image    = serializers.SerializerMethodField()
-    discounted_price = serializers.DecimalField(
-        max_digits=10, decimal_places=2, read_only=True
-    )
     category_name    = serializers.CharField(source="category.name", read_only=True)
     shop_name        = serializers.CharField(source="shop.name", read_only=True)
+    discounted_price = serializers.SerializerMethodField() # 🔥 Safe Field
 
     class Meta:
         model  = Product
@@ -94,13 +92,16 @@ class ProductListSerializer(serializers.ModelSerializer):
             "primary_image", "status",
         )
 
+    def get_discounted_price(self, obj):
+        # Model property ko direct float/decimal handle karke hamesha string/decimal safe return karega
+        return obj.discounted_price
+
     def get_primary_image(self, obj):
         img = obj.images.filter(is_primary=True).first()
         if img:
             request = self.context.get("request")
             return request.build_absolute_uri(img.image.url) if request else img.image.url
         return None
-
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     """Full detail — for product page."""
