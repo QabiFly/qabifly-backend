@@ -49,13 +49,15 @@ class CartSerializer(serializers.ModelSerializer):
         )
 
     def get_delivery_charge(self, obj):
-        # 0.00 ko Decimal banayein taaki crash na ho
+        # ❌ Pehle ye 0.00 (float) tha, ab isko Decimal mein convert kar diya hai
         return Decimal("0.00")
 
     def get_total_amount(self, obj):
-        # Agar subtotal galti se None aaye toh safe fallback
-        subtotal = obj.subtotal or Decimal("0.00")
-        return round(subtotal + self.get_delivery_charge(obj), 2)
+        # Safe handling: Agar subtotal galti se None ya 0 (int) aaye toh Decimal fallback
+        subtotal_val = Decimal(str(obj.subtotal)) if obj.subtotal else Decimal("0.00")
+        delivery_val = self.get_delivery_charge(obj)
+        
+        return round(subtotal_val + delivery_val, 2)
 
 
 class AddToCartSerializer(serializers.Serializer):
