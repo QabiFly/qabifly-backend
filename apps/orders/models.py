@@ -92,6 +92,15 @@ class Order(models.Model):
     def can_cancel(self):
         return self.status in (self.Status.PENDING, self.Status.CONFIRMED)
 
+    def save(self, *args, **kwargs):
+        # Agar order_number pehle se nahi bana hai, toh auto-generate karo
+        if not self.order_number:
+            # Udaharan: QF-2026-XXXXX (Aap apne hisab se prefix badal sakte ho)
+            random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+            self.order_number = f"QF-{random_str}"
+            
+        super().save(*args, **kwargs)
+
     @property
     def is_delivered(self):
         return self.status == self.Status.DELIVERED
