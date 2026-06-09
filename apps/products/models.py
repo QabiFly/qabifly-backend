@@ -83,10 +83,11 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name} — {self.shop.name}"
 
-    @property
+   @property
     def discounted_price(self):
         if self.discount_percent > 0:
-            discount = (self.price * self.discount_percent) / 100
+            # 🔥 FIX: 100 ko Decimal("100") likha taaki division ke baad result Decimal hi rahe
+            discount = (self.price * self.discount_percent) / Decimal("100")
             return round(self.price - discount, 2)
         return self.price
 
