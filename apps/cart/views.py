@@ -23,7 +23,8 @@ def get_or_create_cart(user):
 class CartView(APIView):
     """GET /api/v1/cart/ — user ka cart dekho"""
     permission_classes = [IsAuthenticated]
-
+    serializer_class = CartSerializer
+    
     def get(self, request):
         cart = get_or_create_cart(request.user)
         serializer = CartSerializer(cart, context={"request": request})
