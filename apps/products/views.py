@@ -53,7 +53,13 @@ class ProductListView(generics.ListAPIView):
         max_price     = self.request.query_params.get("max_price")
 
         if shop_slug:
-            qs = qs.filter(shop__slug=shop_slug)
+            # Check karega ki bhejra hua parameter UUID (ID) hai ya slug string
+            import uuid
+            try:
+                uuid.UUID(shop_slug)
+                qs = qs.filter(shop_id=shop_slug)
+            except ValueError:
+                qs = qs.filter(shop__slug=shop_slug)
         if category_slug:
             qs = qs.filter(category__slug=category_slug)
         if featured == "true":
