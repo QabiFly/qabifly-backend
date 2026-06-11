@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from apps.shops.models import Shop
-
+from django.utils.text import slugify
 
 class ProductCategory(models.Model):
     name        = models.CharField(max_length=100)
@@ -81,6 +81,23 @@ class Product(models.Model):
         ordering        = ["-created_at"]
         unique_together = [("shop", "slug")]
 
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.name) or "product"
+            slug = base_slug
+            counter = 1
+
+            while Product.objects.filter(
+                shop=self.shop,
+                slug=slug
+            ).exclude(pk=self.pk).exists():
+                counter += 1
+                slug = f"{base_slug}-{counter}"
+
+            self.slug = slug
+
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         return f"{self.name} — {self.shop.name}"
 
