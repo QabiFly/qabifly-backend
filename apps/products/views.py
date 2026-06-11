@@ -84,13 +84,17 @@ class ProductDetailView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, slug):
-        try:
-            product = Product.objects.select_related(
-                "category", "shop"
-            ).prefetch_related(
-                "images", "variants", "reviews__user"
-            ).get(slug=slug)
-        except Product.DoesNotExist:
+        product = Product.objects.select_related(
+            "category", "shop"
+        ).prefetch_related(
+            "images", "variants", "reviews__user"
+        ).filter(
+            slug=slug
+        ).exclude(
+            status=Product.Status.DELETED
+        ).first()
+
+        if not product:
             return error_response(message="Product not found.", status_code=404)
 
         return success_response(
