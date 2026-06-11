@@ -62,18 +62,9 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        import re
         request = self.context["request"]
-        shop    = request.user.shop
-        name    = validated_data["name"]
-        base_slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
-        slug    = base_slug
-        counter = 1
-        while Product.objects.filter(shop=shop, slug=slug).exists():
-            slug = f"{base_slug}-{counter}"
-            counter += 1
-        return Product.objects.create(shop=shop, slug=slug, **validated_data)
-
+        shop = request.user.shop
+        return Product.objects.create(shop=shop, **validated_data)
 
 class ProductListSerializer(serializers.ModelSerializer):
     primary_image    = serializers.SerializerMethodField()
