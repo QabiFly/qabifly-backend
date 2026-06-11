@@ -77,7 +77,6 @@ class ProductListView(generics.ListAPIView):
         return success_response(data=serializer.data)
 
 class ProductDetailView(APIView):
-    """GET /api/v1/products/<slug>/"""
     permission_classes = [AllowAny]
 
     def get(self, request, slug):
@@ -86,11 +85,31 @@ class ProductDetailView(APIView):
                 "category", "shop"
             ).prefetch_related(
                 "images", "variants", "reviews__user"
-            ).get(slug=slug, status=Product.Status.ACTIVE)
+            ).get(
+                slug=slug,
+                status__in=[
+                    Product.Status.ACTIVE,
+                    # OUT_OF_STOCK products bhi dikhao
+                ]
+            )
+            # Agar OUT_OF_STOCK status hai toh bhi dikhao
         except Product.DoesNotExist:
-            return error_response(message="Product not found.", status_code=404)
+            # Status ignore karke try karo
+            try:
+                product = Product.objects.select_related(
+                    "category", "shop"
+                ).prefetch_related(
+                    "images", "variants", "reviews__user"
+                ).get(slug=slug)
+            except Product.DoesNotExist:
+                return error_response(
+                    message="Product not found.", status_code=404
+                )
+
         return success_response(
-            data=ProductDetailSerializer(product, context={"request": request}).data
+            data=ProductDetailSerializer(
+                product, context={"request": request}
+            ).data
         )
 
 
