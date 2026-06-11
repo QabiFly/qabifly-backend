@@ -1,4 +1,6 @@
 import uuid
+import random
+import string
 from django.db import models
 from django.conf import settings
 from apps.shops.models import Shop
