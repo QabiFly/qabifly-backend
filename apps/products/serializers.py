@@ -76,28 +76,35 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
 
 class ProductListSerializer(serializers.ModelSerializer):
-    """Compact — for listing pages."""
     primary_image    = serializers.SerializerMethodField()
     category_name    = serializers.CharField(source="category.name", read_only=True)
     shop_name        = serializers.CharField(source="shop.name", read_only=True)
-    discounted_price = serializers.SerializerMethodField() # 🔥 Safe Field
+    shop_slug        = serializers.CharField(source="shop.slug", read_only=True)  # ← ADD
+    discounted_price = serializers.SerializerMethodField()
+    is_in_stock      = serializers.SerializerMethodField()  # ← ADD
 
     class Meta:
         model  = Product
         fields = (
-            "id", "name", "slug", "category_name", "shop_name",
+            "id", "name", "slug", "category_name",
+            "shop_name", "shop_slug",             # ← ADD shop_slug
             "price", "discount_percent", "discounted_price",
-            "stock", "is_featured", "unit",
+            "stock", "is_in_stock",               # ← ADD is_in_stock
+            "is_featured", "unit",
             "average_rating", "total_reviews",
             "primary_image", "status",
         )
 
     def get_discounted_price(self, obj):
-        # Model property ko direct float/decimal handle karke hamesha string/decimal safe return karega
-        return obj.discounted_price
+        return str(obj.discounted_price)
+
+    def get_is_in_stock(self, obj):          # ← ADD
+        return obj.stock > 0
 
     def get_primary_image(self, obj):
         img = obj.images.filter(is_primary=True).first()
+        if not img:
+            img = obj.images.first()  # ← Koi bhi image lo
         if img:
             request = self.context.get("request")
             return request.build_absolute_uri(img.image.url) if request else img.image.url
