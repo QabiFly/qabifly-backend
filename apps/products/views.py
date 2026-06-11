@@ -1,7 +1,7 @@
 import logging
 from rest_framework import status, generics
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from core.responses import success_response, error_response
 from core.permissions import IsShopkeeper, IsAdminUser
