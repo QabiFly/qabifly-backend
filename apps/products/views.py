@@ -37,46 +37,39 @@ class ProductListView(generics.ListAPIView):
     permission_classes = [AllowAny]          # ← Yeh add kiya hai
 
     def get_queryset(self):
-        qs = Product.objects.filter(
-            status=Product.Status.ACTIVE,
-            shop__status="ACTIVE",
-        ).select_related("category", "shop").prefetch_related("images")
+    qs = Product.objects.filter(
+        status=Product.Status.ACTIVE,
+    ).select_related("category", "shop").prefetch_related("images")
+    # ↑ shop__status="ACTIVE" HATAO — yeh problem hai
 
-        # Search functionality (ye mat hatao)
-        search = self.request.query_params.get("search")
-        if search:
-            vector = SearchVector("name", "description")
-            query = SearchQuery(search)
-            qs = qs.annotate(
-                rank=SearchRank(vector, query)
-            ).filter(rank__gte=0.001).order_by("-rank")
+    search = self.request.query_params.get("search")
+    if search:
+        vector = SearchVector("name", "description")
+        query  = SearchQuery(search)
+        qs = qs.annotate(
+            rank=SearchRank(vector, query)
+        ).filter(rank__gte=0.001).order_by("-rank")
 
-        # Shop filter (UUID ya slug dono support karta hai)
-        shop_slug = self.request.query_params.get("shop")
-        if shop_slug:
-            import uuid
-            try:
-                uuid.UUID(shop_slug)
-                qs = qs.filter(shop_id=shop_slug)
-            except ValueError:
-                qs = qs.filter(shop__slug=shop_slug)
+    shop_slug = self.request.query_params.get("shop")
+    if shop_slug:
+        import uuid
+        try:
+            uuid.UUID(shop_slug)
+            qs = qs.filter(shop_id=shop_slug)
+        except ValueError:
+            qs = qs.filter(shop__slug=shop_slug)
 
-        # Baaki filters
-        category_slug = self.request.query_params.get("category")
-        featured      = self.request.query_params.get("featured")
-        min_price     = self.request.query_params.get("min_price")
-        max_price     = self.request.query_params.get("max_price")
+    category_slug = self.request.query_params.get("category")
+    featured      = self.request.query_params.get("featured")
+    min_price     = self.request.query_params.get("min_price")
+    max_price     = self.request.query_params.get("max_price")
 
-        if category_slug:
-            qs = qs.filter(category__slug=category_slug)
-        if featured == "true":
-            qs = qs.filter(is_featured=True)
-        if min_price:
-            qs = qs.filter(price__gte=min_price)
-        if max_price:
-            qs = qs.filter(price__lte=max_price)
+    if category_slug: qs = qs.filter(category__slug=category_slug)
+    if featured == "true": qs = qs.filter(is_featured=True)
+    if min_price: qs = qs.filter(price__gte=min_price)
+    if max_price: qs = qs.filter(price__lte=max_price)
 
-        return qs
+    return qs
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
