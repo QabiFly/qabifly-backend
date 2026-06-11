@@ -112,10 +112,12 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     discounted_price = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True
     )
-    is_in_stock      = serializers.BooleanField(read_only=True)
-    is_low_stock     = serializers.BooleanField(read_only=True)
     shop_name        = serializers.CharField(source="shop.name", read_only=True)
     shop_slug        = serializers.CharField(source="shop.slug", read_only=True)
+
+    # ✅ Sahi tareeka
+    is_in_stock      = serializers.SerializerMethodField()
+    is_low_stock     = serializers.SerializerMethodField()
 
     class Meta:
         model  = Product
@@ -129,6 +131,12 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             "images", "variants", "reviews",
             "created_at",
         )
+
+    def get_is_in_stock(self, obj):
+        return obj.is_in_stock          # Model ki property use kar rahe hain
+
+    def get_is_low_stock(self, obj):
+        return obj.is_low_stock
 
 
 class ProductUpdateSerializer(serializers.ModelSerializer):
