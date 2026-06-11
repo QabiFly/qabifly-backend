@@ -32,34 +32,41 @@ class ProductCategoryListView(generics.ListAPIView):
 # ── Public Product Listing ────────────────────────────────────────────────────
 
 class ProductListView(generics.ListAPIView):
+    """GET /api/v1/products/ — Public product listing with filters"""
+    serializer_class   = ProductListSerializer
+    permission_classes = [AllowAny]          # ← Yeh add kiya hai
+
     def get_queryset(self):
-        qs     = Product.objects.filter(
+        qs = Product.objects.filter(
             status=Product.Status.ACTIVE,
             shop__status="ACTIVE",
-        ).select_related("category","shop").prefetch_related("images")
+        ).select_related("category", "shop").prefetch_related("images")
 
+        # Search functionality (ye mat hatao)
         search = self.request.query_params.get("search")
         if search:
-            vector = SearchVector("name","description")
-            query  = SearchQuery(search)
+            vector = SearchVector("name", "description")
+            query = SearchQuery(search)
             qs = qs.annotate(
                 rank=SearchRank(vector, query)
             ).filter(rank__gte=0.001).order_by("-rank")
 
-        shop_slug     = self.request.query_params.get("shop")
-        category_slug = self.request.query_params.get("category")
-        featured      = self.request.query_params.get("featured")
-        min_price     = self.request.query_params.get("min_price")
-        max_price     = self.request.query_params.get("max_price")
-
+        # Shop filter (UUID ya slug dono support karta hai)
+        shop_slug = self.request.query_params.get("shop")
         if shop_slug:
-            # Check karega ki bhejra hua parameter UUID (ID) hai ya slug string
             import uuid
             try:
                 uuid.UUID(shop_slug)
                 qs = qs.filter(shop_id=shop_slug)
             except ValueError:
                 qs = qs.filter(shop__slug=shop_slug)
+
+        # Baaki filters
+        category_slug = self.request.query_params.get("category")
+        featured      = self.request.query_params.get("featured")
+        min_price     = self.request.query_params.get("min_price")
+        max_price     = self.request.query_params.get("max_price")
+
         if category_slug:
             qs = qs.filter(category__slug=category_slug)
         if featured == "true":
@@ -72,10 +79,9 @@ class ProductListView(generics.ListAPIView):
         return qs
 
     def list(self, request, *args, **kwargs):
-        queryset   = self.get_queryset()
+        queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True, context={"request": request})
         return success_response(data=serializer.data)
-
 
 class ProductDetailView(APIView):
     """GET /api/v1/products/<slug>/"""
