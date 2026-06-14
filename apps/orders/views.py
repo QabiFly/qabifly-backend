@@ -367,16 +367,39 @@ class UpdateOrderStatusView(APIView):
         prev_status = order.status
         order.status = new_status
         if new_status == "CONFIRMED":
-            order.confirmed_at = timezone.now()
-            order.payment_status = "PAID" if order.payment_method == "COD" else order.payment_status
-        order.save(update_fields=["status", "confirmed_at", "payment_status"])
+    order.confirmed_at = timezone.now()
+    order.payment_status = "PAID" if order.payment_method == "COD" else order.payment_status
 
-        log_status_change(order, prev_status, new_status, request.user,
-                          serializer.validated_data.get("note", ""))
+order.save(update_fields=["status", "confirmed_at", "payment_status"])
 
-        return success_response(message=f"Order status updated to '{new_status}'.")
+# Jab status CONFIRMED hota hai, delivery boys ko notify karo
+if new_status == "CONFIRMED":
+order.confirmed_at = timezone.now()
+order.payment_status = (
+"PAID" if order.payment_method == "COD"
+else order.payment_status
+)
 
+# Delivery boys notification
+try:
+    from apps.orders.tasks import notify_delivery_boys_new_order
+    notify_delivery_boys_new_order.delay(str(order.id))
+except Exception as e:
+    logger.warning(f"Delivery boys notification failed: {e}")
 
+order.save(update_fields=["status", "confirmed_at", "payment_status"])
+
+log_status_change(
+order,
+prev_status,
+new_status,
+request.user,
+serializer.validated_data.get("note", "")
+)
+
+return success_response(
+message=f"Order status updated to '{new_status}'."
+)
 # ── Delivery Boy ──────────────────────────────────────────────────────────────
 
 class VerifyDeliveryOTPView(APIView):
