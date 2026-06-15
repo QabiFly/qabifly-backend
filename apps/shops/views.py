@@ -77,20 +77,21 @@ class NearbyShopsView(APIView):
 # ── Shopkeeper — Own Shop ─────────────────────────────────────────────────────
 
 class MyShopView(APIView):
-    """GET /api/v1/shops/mine/ — shopkeeper apni shop dekhe"""
     permission_classes = [IsAuthenticated, IsShopkeeper]
 
     def get(self, request):
-        try:
-            shop = request.user.shop
-        except Shop.DoesNotExist:
+        shop = Shop.objects.filter(owner=request.user).select_related(
+            "category", "owner"
+        ).first()
+
+        if not shop:
             return error_response(
-                message="You have not registered a shop yet.",
+                message="Shop not found.",
                 status_code=status.HTTP_404_NOT_FOUND,
             )
+
         return success_response(data=ShopOwnerSerializer(shop).data)
-
-
+        
 class CreateShopView(APIView):
     """POST /api/v1/shops/create/ — shopkeeper registers a shop"""
     permission_classes = [IsAuthenticated, IsShopkeeper]
@@ -110,33 +111,33 @@ class CreateShopView(APIView):
 
 
 class UpdateShopView(APIView):
-    """PATCH /api/v1/shops/mine/update/"""
     permission_classes = [IsAuthenticated, IsShopkeeper]
 
     def patch(self, request):
-        try:
-            shop = request.user.shop
-        except Shop.DoesNotExist:
+        shop = Shop.objects.filter(owner=request.user).first()
+
+        if not shop:
             return error_response(
-                message="Shop not found.", status_code=status.HTTP_404_NOT_FOUND
+                message="Shop not found.",
+                status_code=status.HTTP_404_NOT_FOUND,
             )
+
         serializer = ShopUpdateSerializer(shop, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
         return success_response(
             data=ShopOwnerSerializer(shop).data,
             message="Shop updated successfully.",
         )
-
-
+        
 class ToggleShopOpenView(APIView):
-    """POST /api/v1/shops/mine/toggle-open/ — open/close shop"""
     permission_classes = [IsAuthenticated, IsShopkeeper]
 
     def post(self, request):
-        try:
-            shop = request.user.shop
-        except Shop.DoesNotExist:
+        shop = Shop.objects.filter(owner=request.user).first()
+
+        if not shop:
             return error_response(message="Shop not found.", status_code=404)
 
         if shop.status != Shop.Status.ACTIVE:
@@ -144,32 +145,34 @@ class ToggleShopOpenView(APIView):
                 message="Only approved shops can be opened or closed.",
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
+
         shop.is_open = not shop.is_open
         shop.save(update_fields=["is_open"])
-        state = "opened" if shop.is_open else "closed"
-        return success_response(message=f"Shop {state} successfully.")
 
-
+        return success_response(
+            data=ShopOwnerSerializer(shop).data,
+            message=f"Shop {'opened' if shop.is_open else 'closed'} successfully.",
+        )
+        
 class UploadShopDocumentView(APIView):
-    """POST /api/v1/shops/mine/documents/ — upload verification docs"""
     permission_classes = [IsAuthenticated, IsShopkeeper]
 
     def post(self, request):
-        try:
-            shop = request.user.shop
-        except Shop.DoesNotExist:
+        shop = Shop.objects.filter(owner=request.user).first()
+
+        if not shop:
             return error_response(message="Shop not found.", status_code=404)
 
         serializer = ShopDocumentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(shop=shop)
+
         return success_response(
             data=serializer.data,
             message="Document uploaded successfully.",
             status_code=status.HTTP_201_CREATED,
         )
-
-
+        
 # ── Public Shop Detail ────────────────────────────────────────────────────────
 
 class ShopDetailView(APIView):
