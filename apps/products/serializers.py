@@ -23,14 +23,34 @@ class ProductCategorySerializer(serializers.ModelSerializer):
 
         request = self.context.get("request")
         url = obj.icon.url
-
         return request.build_absolute_uri(url) if request else url
 
     def get_children(self, obj):
+        max_depth = self.context.get("max_depth", 3)
+        depth = self.context.get("depth", 0)
+        visited = set(self.context.get("visited_categories", set()))
+
+        if depth >= max_depth:
+            return []
+
+        obj_id = str(obj.id)
+
+        if obj_id in visited:
+            return []
+
+        visited.add(obj_id)
+
+        children = obj.children.filter(is_active=True).exclude(id=obj.id)
+
         return ProductCategorySerializer(
-            obj.children.filter(is_active=True),
+            children,
             many=True,
-            context=self.context,
+            context={
+                **self.context,
+                "depth": depth + 1,
+                "max_depth": max_depth,
+                "visited_categories": visited,
+            },
         ).data
 
 
@@ -48,7 +68,6 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
         request = self.context.get("request")
         url = obj.image.url
-
         return request.build_absolute_uri(url) if request else url
 
 
@@ -166,7 +185,6 @@ class ProductListSerializer(serializers.ModelSerializer):
 
         request = self.context.get("request")
         url = img.image.url
-
         return request.build_absolute_uri(url) if request else url
 
 
@@ -174,7 +192,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     variants = ProductVariantSerializer(many=True, read_only=True)
     reviews = ProductReviewSerializer(many=True, read_only=True)
-    category = ProductCategorySerializer(read_only=True)
+    category = serializers.SerializerMethodField()
 
     shop_name = serializers.CharField(source="shop.name", read_only=True)
     shop_slug = serializers.CharField(source="shop.slug", read_only=True)
@@ -214,6 +232,17 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             "created_at",
         )
 
+    def get_category(self, obj):
+        return ProductCategorySerializer(
+            obj.category,
+            context={
+                **self.context,
+                "depth": 0,
+                "max_depth": 3,
+                "visited_categories": set(),
+            },
+        ).data
+
     def get_price(self, obj):
         return str(obj.price)
 
@@ -230,9 +259,8 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         return obj.is_low_stock
 
     def get_images(self, obj):
-        images = obj.images.all()
         return ProductImageSerializer(
-            images,
+            obj.images.all(),
             many=True,
             context=self.context,
         ).data
