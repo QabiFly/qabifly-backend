@@ -107,9 +107,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     variants         = ProductVariantSerializer(many=True, read_only=True)
     reviews          = ProductReviewSerializer(many=True, read_only=True)
     category         = ProductCategorySerializer(read_only=True)
-    discounted_price = serializers.DecimalField(
-        max_digits=10, decimal_places=2, read_only=True
-    )
+    discounted_price = serializers.SerializerMethodField()
     shop_name        = serializers.CharField(source="shop.name", read_only=True)
     shop_slug        = serializers.CharField(source="shop.slug", read_only=True)
 
@@ -135,6 +133,9 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 
     def get_is_low_stock(self, obj):
         return obj.is_low_stock
+
+    def get_discounted_price(self, obj):
+    return str(obj.discounted_price)
 
 
 class ProductUpdateSerializer(serializers.ModelSerializer):
