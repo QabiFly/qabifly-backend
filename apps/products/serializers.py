@@ -129,13 +129,13 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         )
 
     def get_is_in_stock(self, obj):
-        return obj.is_in_stock          # Model ki property use kar rahe hain
+        return obj.is_in_stock
 
     def get_is_low_stock(self, obj):
         return obj.is_low_stock
 
     def get_discounted_price(self, obj):
-    return str(obj.discounted_price)
+        return str(obj.discounted_price)
 
 
 class ProductUpdateSerializer(serializers.ModelSerializer):
